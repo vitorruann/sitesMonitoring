@@ -1,4 +1,6 @@
-https://www.alura.com.br
+
+http://alura.com.br
 https://caelum.com.br
 https://httpbin.org/status/404
-http://youtube.com.br
+https://httpbin.org/status/500
+http://google.com

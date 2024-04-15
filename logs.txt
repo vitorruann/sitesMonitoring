@@ -1,0 +1,10 @@
+15/04/2024 08:26:30 - Site: http://alura.com.br - Status: 200
+15/04/2024 08:26:38 - Site: https://caelum.com.br - Status: 200
+15/04/2024 08:26:40 - Site: https://httpbin.org/status/404 - Status: 404
+15/04/2024 08:26:44 - Site: https://httpbin.org/status/500 - Status: 500
+15/04/2024 08:26:45 - Site: http://google.com - Status: 200
+15/04/2024 08:26:50 - Site: http://alura.com.br - Status: 200
+15/04/2024 08:26:51 - Site: https://caelum.com.br - Status: 200
+15/04/2024 08:26:52 - Site: https://httpbin.org/status/404 - Status: 404
+15/04/2024 08:26:53 - Site: https://httpbin.org/status/500 - Status: 500
+15/04/2024 08:26:53 - Site: http://google.com - Status: 200

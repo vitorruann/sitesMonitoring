@@ -14,7 +14,7 @@ import (
 
 const NAME = "Vitor"
 const APPLICATION = "Monitor de sites."
-const VERSION = 1.1
+const VERSION = 1.2
 
 const MONITORING = 2
 const DELAY = 5
@@ -22,11 +22,13 @@ const DELAY = 5
 type Options int
 
 const (
-	Finish Options = iota
+	Finish Options = iota + 1
 	MonitorSites
 	AddSites
 	ShowSites
+	CleanSites
 	ShowLogs
+	CleanLogs
 )
 
 type HttpStatus int
@@ -41,13 +43,16 @@ func intro() {
 	fmt.Println("Nome:", NAME, "\nAplicação:", APPLICATION, "\nVersão:", VERSION)
 }
 
-func getCommand() int {
+func printMenu() int {
 	var command int
 
-	fmt.Println("\n" + strconv.Itoa(int(MonitorSites)) + "- Iniciar Monitoramento")
+	fmt.Println("\n")
+	fmt.Println(strconv.Itoa(int(MonitorSites)) + "- Iniciar Monitoramento")
 	fmt.Println(strconv.Itoa(int(AddSites)) + "- Adicionar Sites")
-	fmt.Println(strconv.Itoa(int(ShowSites)) + "- Lista de sites")
-	fmt.Println(strconv.Itoa(int(ShowLogs)) + "- Logs")
+	fmt.Println(strconv.Itoa(int(ShowSites)) + "- Listar sites")
+	fmt.Println(strconv.Itoa(int(CleanSites)) + "- Limpar lista de sites")
+	fmt.Println(strconv.Itoa(int(ShowLogs)) + "- Mostrar Logs")
+	fmt.Println(strconv.Itoa(int(CleanLogs)) + "- Limpar arquivo de Logs")
 	fmt.Println(strconv.Itoa(int(Finish)) + "- Sair")
 
 	fmt.Scan(&command)
@@ -59,7 +64,7 @@ func testSite(site string) {
 	response, err := http.Get(site)
 
 	if err != nil {
-		fmt.Println("Erro ao tentar ler o arquivo: ", err)
+		fmt.Println("Erro ao tentar acessar o site: ", err)
 		return
 	}
 
@@ -79,7 +84,7 @@ func getSitesFromFile() []string {
 	file, err := os.Open("sites.txt")
 
 	if err != nil {
-		fmt.Println("Erro ao tentar ler o arquivo: ", err)
+		fmt.Println("Erro ao tentar abrir o arquivo: ", err)
 		file.Close()
 		return nil
 	}
@@ -90,7 +95,11 @@ func getSitesFromFile() []string {
 		line, err := reader.ReadString('\n')
 		line = strings.TrimSpace(line)
 
-		sites = append(sites, line)
+		if err == nil || err == io.EOF {
+			sites = append(sites, line)
+		} else {
+			fmt.Println("Erro ao ler linha: ", err)
+		}
 
 		if err == io.EOF {
 			break
@@ -124,6 +133,8 @@ func startMonitor() {
 }
 
 func addSites() {
+	// https://httpbin.org/status/404
+
 	var site string
 	fmt.Println("Digite a url completa do site: ")
 	fmt.Scan(&site)
@@ -140,17 +151,9 @@ func addSites() {
 	file.Close()
 }
 
-func saveLogs(site string, status int) {
-	file, err := os.OpenFile("log.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-
-	if err != nil {
-		fmt.Println("Erro ao criar/abrir arquivo de log: ", err)
-		file.Close()
-		return
-	}
-
-	file.WriteString(time.Now().Format("02/01/2006 15:04:05") + " - Site: " + site + " - Status: " + strconv.Itoa(status) + "\n")
-	file.Close()
+func cleanSitesFile() {
+	response := os.Remove("sites.txt")
+	fmt.Println(response)
 }
 
 func printSites() {
@@ -167,14 +170,32 @@ func printSites() {
 func printLogs() {
 	fmt.Println("Exibindo logs...")
 
-	file, err := ioutil.ReadFile("log.txt")
+	file, err := ioutil.ReadFile("logs.txt")
 
 	if err != nil {
-		fmt.Println("Erro ao abrir aquivo de log: ", err)
+		fmt.Println("Erro ao abrir aquivo de logs: ", err)
 		return
 	}
 
 	fmt.Println(string(file))
+}
+
+func saveLogs(site string, status int) {
+	file, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+
+	if err != nil {
+		fmt.Println("Erro ao criar/abrir arquivo de logs: ", err)
+		file.Close()
+		return
+	}
+
+	file.WriteString(time.Now().Format("02/01/2006 15:04:05") + " - Site: " + site + " - Status: " + strconv.Itoa(status) + "\n")
+	file.Close()
+}
+
+func cleanLogsFile() {
+	response := os.Remove("logs.txt")
+	fmt.Println(response)
 }
 
 func main() {
@@ -182,7 +203,7 @@ func main() {
 	intro()
 
 	for {
-		command := getCommand()
+		command := printMenu()
 
 		switch command {
 
@@ -192,11 +213,17 @@ func main() {
 		case int(AddSites):
 			addSites()
 
+		case int(CleanSites):
+			cleanSitesFile()
+
 		case int(ShowSites):
 			printSites()
 
 		case int(ShowLogs):
 			printLogs()
+
+		case int(CleanLogs):
+			cleanLogsFile()
 
 		case int(Finish):
 			fmt.Println("Finalizando aplicação")
